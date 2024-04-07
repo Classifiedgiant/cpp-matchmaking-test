@@ -1,0 +1,92 @@
+# This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
+# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
+name: Multi Platform Build and Test
+
+on:
+  workflow_call:
+    inputs:
+      create_package:
+        required: true
+        type: boolean
+      package_tag:
+        required: false
+        type: string
+        default: "not_set"
+
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
+      fail-fast: false
+      matrix:
+        # Original values
+        #os: [ubuntu-latest, windows-latest]
+        # build_type: [Release]
+        #c_compiler: [gcc, clang, cl]
+        include:
+          - os: windows-latest
+            c_compiler: cl
+            cpp_compiler: cl
+          - os: macos-latest
+            c_compiler: clang
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Checkout latest
+      run: git pull --tags
+
+    - name: Install Conan
+      id: conan
+      uses: turtlebrowser/get-conan@main
+
+    - name: Install Conan Dependencies
+      # Window only config at the moment
+      run: >
+        conan profile detect &&
+        conan install ${{ github.workspace }} --build=missing
+
+    - name: Configure CMake For Windows
+      if: ${{matrix.os == 'windows-latest'}}
+      run: >
+        cmake --preset conan-default
+
+    - name: Configure CMake For MacOS
+      if: ${{matrix.os == 'macos-latest'}}
+      run: >
+        cmake --preset conan-release
+
+    - name: Build
+      run: cmake --build --preset conan-release
+
+    - name: Create Package For Windows
+      if: ${{ success() && matrix.os == 'windows-latest' && inputs.create_package }}
+      run: cpack --config ${{github.workspace}}\build\CPackConfig.cmake
+
+    - name: Create Package For MacOS
+      if: ${{ success() && matrix.os == 'macos-latest' && inputs.create_package }}
+      run: cpack --config ${{github.workspace}}/build/Release/CPackConfig.cmake
+
+    - name: Upload Artifact For Windows
+      if: ${{ success() && matrix.os == 'windows-latest' && inputs.create_package }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: artifact-${{matrix.os}}
+        path: "${{github.workspace}}/*.zip"
+        if-no-files-found: error
+
+    - name: Upload Artifact For Macos
+      if: ${{ success() && matrix.os == 'macos-latest' && inputs.create_package }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: artifact-${{matrix.os}}
+        path: "${{github.workspace}}/*.tar.gz"
+        if-no-files-found: error
