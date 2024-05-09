@@ -35,6 +35,7 @@ jobs:
           - os: windows-latest
             c_compiler: cl
             cpp_compiler: cl
+
           - os: macos-latest
             c_compiler: clang
 
@@ -44,12 +45,19 @@ jobs:
     - name: Checkout latest
       run: git pull --tags
 
-    - name: Install Conan
+    - name: Install Conan for Mac
+      if: ${{matrix.os == 'macos-latest'}}
+      run: |
+        brew install pipx
+        pipx ensurepath
+        pipx install conan
+
+    - name: Install Conan for Windows
+      if: ${{matrix.os == 'windows-latest'}}
       id: conan
       uses: turtlebrowser/get-conan@main
 
     - name: Install Conan Dependencies
-      # Window only config at the moment
       run: >
         conan profile detect &&
         conan install ${{ github.workspace }} --build=missing
