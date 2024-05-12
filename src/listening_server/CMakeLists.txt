@@ -6,5 +6,5 @@ find_package(Poco REQUIRED)
 
 add_executable(${PROJECT_NAME} main.cpp http_server.cpp)
 
-target_include_directories(${PROJECT_NAME} PRIVATE .)
+target_include_directories(${PROJECT_NAME} PRIVATE . ./request_handlers)
 target_link_libraries(${PROJECT_NAME} Poco::Poco)
