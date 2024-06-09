@@ -14,6 +14,7 @@ class Recipe(ConanFile):
         self.requires("catch2/3.5.2")
         self.requires("libcurl/8.6.0")
         self.requires("poco/1.13.3")
+        self.requires("oatpp/1.3.0")
 
 
     def layout(self):
