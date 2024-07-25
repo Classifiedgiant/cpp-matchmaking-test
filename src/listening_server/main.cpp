@@ -12,7 +12,9 @@ class Handler : public oatpp::web::server::HttpRequestHandler {
 public:
   auto handle(const std::shared_ptr<IncomingRequest>& request
   ) -> std::shared_ptr<OutgoingResponse> override {
-    return ResponseFactory::createResponse(Status::CODE_200, "Hello World");
+    return ResponseFactory::createResponse(
+      Status::CODE_200, "Let`s see it this works properly"
+    );
   }
 };
 
@@ -33,9 +35,8 @@ void run() {
     );
 
   oatpp::network::Server server(connection_provider, connection_handler);
-
   std::cout << "Logging was here\n";
-  spdlog::info("Server starting on port {}", 80);
+  spdlog::info("Server starting on port {}", port);
 
   server.run();
 }
