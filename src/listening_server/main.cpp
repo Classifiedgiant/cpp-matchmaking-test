@@ -35,6 +35,7 @@ void run() {
     );
 
   oatpp::network::Server server(connection_provider, connection_handler);
+
   std::cout << "Logging was here\n";
   spdlog::info("Server starting on port {}", port);
 
